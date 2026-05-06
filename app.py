@@ -145,18 +145,32 @@ def render_table(df, index=False):
     if index:
         df = df.copy()
         df.insert(0, '#', range(1, len(df) + 1))
+
+    # detect which columns are percentage columns by name
+    pct_cols = set()
+    for col in df.columns:
+        col_lower = col.lower()
+        if any(x in col_lower for x in ['%', 'pct', 'rate', 'win']):
+            pct_cols.add(col)
+
     headers = ''.join([f'<th>{col}</th>' for col in df.columns])
     rows = ''
     for _, row in df.iterrows():
         cells = ''
-        for val in row:
-            if isinstance(val, float):
-                if 0 < abs(val) < 1:
+        for col, val in zip(df.columns, row):
+            if pd.isna(val):
+                formatted = '—'
+            elif col in pct_cols and isinstance(val, float):
+                # format as percentage
+                if val <= 1.0:
                     formatted = f"{val:.1%}"
                 else:
-                    formatted = f"{val:.1f}" if val != int(val) else str(int(val))
+                    formatted = f"{val:.1f}%"
+            elif isinstance(val, float):
+                # regular float — show 1 decimal, drop .0
+                formatted = f"{val:.1f}" if val != int(val) else str(int(val))
             else:
-                formatted = str(val) if pd.notna(val) else '—'
+                formatted = str(val)
             cells += f'<td>{formatted}</td>'
         rows += f'<tr>{cells}</tr>'
     html = f'<table class="nba-table"><thead><tr>{headers}</tr></thead><tbody>{rows}</tbody></table>'
