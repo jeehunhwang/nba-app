@@ -1,0 +1,8 @@
+streamlit
+google-cloud-bigquery
+google-auth
+pandas
+plotly
+matplotlib
+db-dtypes
+pyarrow
