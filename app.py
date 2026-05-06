@@ -1,7 +1,6 @@
 import streamlit as st
 from google.cloud import bigquery
 import pandas as pd
-import pickle
 import plotly.graph_objects as go
 import plotly.express as px
 import matplotlib.pyplot as plt
@@ -134,9 +133,12 @@ NBA_TEAMS = [
 
 # ── bigquery ──────────────────────────────────────────────
 def get_bq_client():
-    with open('token.pickle', 'rb') as token:
-        creds = pickle.load(token)
-    return bigquery.Client(project="nba-dashboard-495409", credentials=creds)
+    from google.oauth2 import service_account
+    credentials = service_account.Credentials.from_service_account_info(
+        st.secrets["gcp_service_account"],
+        scopes=["https://www.googleapis.com/auth/cloud-platform"]
+    )
+    return bigquery.Client(project="nba-dashboard-495409", credentials=credentials)
 
 # ── html table renderer ───────────────────────────────────
 def render_table(df, index=False):
